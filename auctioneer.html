@@ -1,0 +1,127 @@
+<!-- StAuth10222: I Hruthvik Chokshi, 000813765 certify that this material is my original work. No other person's work has been used without due acknowledgement. I have not made my work available to anyone else. -->
+<html>
+    <head>
+        <title>Auctioneer</title>
+        <style>
+            table,td,th{
+                border: 2px solid;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="enteruser">
+            <form id="item" method="">
+                <label for="itemname">Item Name: </label>
+                <input type="text" id="itemname"> <br/><br>
+
+                <label for="price">Price: </label>
+                <input type="number" id="price" min="1"> <br/><br>
+
+                <label for="timelimit">Time Limit(between 10-80): </label>
+                <input type="range" id="timelimit" min="10" max="80" step="10"> <br/><br>
+
+                <input type="submit" value="Start" id="submitnewbid">
+                <br><br>
+            </form>
+        </div>
+
+        <div id="sadiv">
+            <form id="sa" method="">
+                <input type="submit" id="submitauction" value="Submit Auction">
+            </form>
+        </div>
+
+        <div id="time">
+            <h1 id="timer">Timer: </h1>
+        </div>
+
+        <div id="submitauc">
+            <label for="hbid" style="font-size:50px">Highest Bid: </label>
+            <label for="hbid1" id="hbid1" style="font-size:30px"></label><br><br>
+            <label for="hber" style="font-size:30px">Highest Bidder:</label>
+            <label for="hber1" id="hber1" style="font-size:30px"></label><br><br>
+            <label for="tb">Total Bids Recieved: </label>
+            <label for="tbr" id="tbr"></label>
+            <table style="border: 2px solid black;">
+                <th>Bidder Name</th>
+                <th>Highest bid so far</th>
+                <th>Total number of bids</th>
+            </table>
+            <br><br>
+            <table style="border: 2px solid black;" id="alldata">
+            <tr>
+                <th>Bidder Name</th>
+                <th>Bidder Price</th>
+            </tr>
+
+            </table>
+        </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            $("#time").hide();
+            $("#submitauc").hide();
+            $("#submitauction").hide();
+            
+            const socket = io();
+            socket.on("bcidding",function(cbname,cbprice){
+                $("#hber1").html(cbname);
+                $("#hbid1").html(cbprice);
+                
+                $('#alldata').append($('<tr> <td>'+cbname+'</td> <td>'+cbprice+'</td> </tr>'));
+            });
+            $("#sa").submit(function(){
+                $("#enteruser").hide();
+                $("#time").hide();
+                $("#sadiv").hide();
+                $("#submitauc").show();
+
+                return false;
+            });
+
+            $("#item").submit(function(){
+                $("#time").show();
+                
+                socket.emit("submititem",{
+                    itemname: $("#itemname").val(),
+                    price: $("#price").val(),
+                    timelimit: $("#timelimit").val(),
+                    hb: "Auctioneer",
+                    hbp:  $("#price").val()
+                });
+                var time = $("#timelimit").val();
+                function updateTimer()
+                {
+                    time = time - 1;
+                    document.getElementById("timer").innerHTML = 
+                    "Timer: " + time;
+                    
+                    // is time up?
+                    if (time != 0)
+                    {
+                        var x = document.getElementById("submitnewbid")
+                        x.style.display ="none";
+                    setTimeout(
+                        updateTimer, 
+                        1000);
+                    } 
+                    else if (time == 0)
+                    {
+                        var x = document.getElementById("submitnewbid")
+                        var y = document.getElementById("submitauction")
+                        x.style.display ="block";
+                        y.style.display ="block";
+                        x.value="Start new bid";
+                        document.getElementById("timer").innerHTML = 
+                        "Time's up!";
+                    }
+                }
+                updateTimer();
+
+                return false;
+            });
+            
+        </script>
+        
+    </body>
+</html>

@@ -1,0 +1,168 @@
+<!-- StAuth10222: I Hruthvik Chokshi, 000813765 certify that this material is my original work. No other person's work has been used without due acknowledgement. I have not made my work available to anyone else. -->
+<html>
+    <head>
+        <title>Bidder</title>
+    </head>
+    <body>
+        <div id="enteruname">
+        <form id="bidderdetail" method="">
+            <label for="name">Enter your name :</label>
+            <input type="text" id="name" required> <br/><br>
+
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+
+
+
+    <div id="waittime">
+        <span style="font-size:30px">Waiting for the next Auction to begin...</span>
+    </div>
+    <div id="winner" style="font-size:30px">
+        <br><br><span>Winner</span><br>
+        <span>Highest Bidder: </span>
+        <span id="whbn2"></span><br><br>
+        <span>Highest Bid:</span>
+        <span id="hba2"></span>
+    </div>
+
+
+    <div id="bidstart">
+        <h1 id="timer">Timer: </h1>
+        <form id="newbid" name="newbid" method="">
+            
+            <label for="i">Item: </label>
+            <label for="in" id="in"></label><br><br>
+            <label for="ip">Price: </label>
+            <label for="cip" id="cip"></label><br><br>
+            <label for="whb">Highest Bidder:</label>
+            
+            <label for="whbn" id="whbn"></label><br><Br>
+            <label for="whbp">Highest Bid: </label>
+            <label for="hba" id="hba"></label>
+            <br><Br>
+            <label for="priceupdate">Enter your bid : </label>
+            <input type="number" id="priceupdate"> <br/><br>
+            <input type="submit" id="sbid" name="sbid">
+        </form>
+    </div>
+
+
+        <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+
+
+
+        <script>
+            
+            const socket = io();
+            $("#winner").hide();
+            $("#waittime").hide();
+            $("#bidstart").hide();
+
+            $("#bidderdetail").submit(function(){
+                $("#enteruname").hide();
+                $("#winner").hide();
+                $("#waittime").show();
+                socket.emit("username",{
+                    biddername: $("#name").val()
+                });
+                return false;
+            });
+            
+            $("#newbid").submit(function(){
+                $("#waittime").hide();
+                $("#winner").hide();
+                $("#enteruname").hide();
+                $("#bidstart").show();
+                
+                socket.emit("sendbid",{
+                    biddername: $("#name").val(),
+                    priceupdate: $("#priceupdate").val()
+                });
+                return false;
+            });
+
+
+            socket.on("bcidding",function(cbname,cbprice){
+                
+                $("#winner").hide();
+                
+                $("#whbn").html(cbname);
+                $("#hba").html(cbprice);
+                $("#whbn2").html(cbname);
+                $("#hba2").html(cbprice);
+                let minp = cbprice;
+                minp++;
+                
+                function inputvalid1(){
+                    let xyz = document.getElementById("priceupdate");
+                    xyz.setAttribute("min",minp);
+                    
+                }
+                inputvalid1();                
+                
+            });
+            
+            socket.on("bidstart", function(iname,iprice,tlimit,hb1,hbp1){
+                $("#waittime").hide();
+                $("#winner").hide();
+                $("#enteruname").hide();
+                $("#bidstart").show();
+                
+                $("#whbn").html(hb1);
+                $("#in").html(iname);
+                $("#cip").html(iprice);
+                $("#hba").html(hbp1);
+
+                let minp = iprice;
+                minp++;
+                
+                function inputvalid(){
+                    let xyz = document.getElementById("priceupdate");
+                    xyz.setAttribute("min",minp);
+                }
+                inputvalid();
+                var time= tlimit;
+                function updateTimer()
+                {
+                    time = time - 1;
+                    document.getElementById("timer").innerHTML = 
+                    "Timer: " + time;
+                    
+                    // is time up?
+                    if (time != 0)
+                    {
+                        var x = document.getElementById("sbid")
+                        x.style.display ="block";
+                        var x1 = document.getElementById("newbid")
+                        x1.style.display ="block";
+                    setTimeout(
+                        updateTimer, 
+                        1000);
+                    } 
+                    else if (time == 0)
+                    {
+                        document.getElementById("timer").innerHTML = 
+                        "Time's up!";
+                        var x = document.getElementById("sbid")
+                        x.style.display ="none";
+                        var x1 = document.getElementById("newbid")
+                        x1.style.display ="none";
+                        
+                        var y = document.getElementById("waittime")
+                        y.style.display ="block";
+                        var z = document.getElementById("winner")
+                        z.style.display ="block";
+                    }
+                }
+                updateTimer();
+            });
+
+        </script>
+    </body>
+</html>
